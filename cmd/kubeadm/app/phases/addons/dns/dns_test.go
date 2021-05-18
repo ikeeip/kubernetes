@@ -27,6 +27,7 @@ import (
 	apps "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientsetfake "k8s.io/client-go/kubernetes/fake"
 	clientsetscheme "k8s.io/client-go/kubernetes/scheme"
@@ -45,12 +46,14 @@ func TestCompileManifests(t *testing.T) {
 			data: struct {
 				DeploymentName, Image, OldControlPlaneTaintKey, ControlPlaneTaintKey string
 				Replicas                                                             *int32
+				NodeSelector                                                         labels.Set
 			}{
 				DeploymentName:          "foo",
 				Image:                   "foo",
 				OldControlPlaneTaintKey: "foo",
 				ControlPlaneTaintKey:    "foo",
 				Replicas:                &replicas,
+				NodeSelector:            labels.Set{"lk": "lv"},
 			},
 		},
 		{
@@ -133,6 +136,7 @@ func TestDeploymentsHaveSystemClusterCriticalPriorityClassName(t *testing.T) {
 			data: struct {
 				DeploymentName, Image, OldControlPlaneTaintKey, ControlPlaneTaintKey, CoreDNSConfigMapName string
 				Replicas                                                                                   *int32
+				NodeSelector                                                                               labels.Set
 			}{
 				DeploymentName:          "foo",
 				Image:                   "foo",
@@ -140,6 +144,7 @@ func TestDeploymentsHaveSystemClusterCriticalPriorityClassName(t *testing.T) {
 				ControlPlaneTaintKey:    "foo",
 				CoreDNSConfigMapName:    "foo",
 				Replicas:                &replicas,
+				NodeSelector:            labels.Set{"lk": "lv"},
 			},
 		},
 	}

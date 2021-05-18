@@ -97,6 +97,7 @@ func TestPrintConfiguration(t *testing.T) {
 	  local:
 	    dataDir: /some/path
 	kind: ClusterConfiguration
+	kubeProxyAddon: {}
 	kubernetesVersion: v1.7.1
 	networking: {}
 	scheduler: {}
@@ -128,6 +129,7 @@ func TestPrintConfiguration(t *testing.T) {
 	    - https://one-etcd-instance:2379
 	    keyFile: ""
 	kind: ClusterConfiguration
+	kubeProxyAddon: {}
 	kubernetesVersion: v1.7.1
 	networking:
 	  serviceSubnet: 10.96.0.1/12

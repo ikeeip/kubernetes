@@ -59,6 +59,9 @@ const (
 
 	// DefaultImagePullPolicy is the default image pull policy in kubeadm
 	DefaultImagePullPolicy = corev1.PullIfNotPresent
+
+	DefaultDNSAddonNodeSelector       = "kubernetes.io/os=linux"
+	DefaultKubeProxyAddonNodeSelector = "kubernetes.io/os=linux"
 )
 
 var (
@@ -104,8 +107,10 @@ func SetDefaults_ClusterConfiguration(obj *ClusterConfiguration) {
 		obj.ClusterName = DefaultClusterName
 	}
 
+	SetDefaults_DNS(obj)
 	SetDefaults_Etcd(obj)
 	SetDefaults_APIServer(&obj.APIServer)
+	SetDefaults_Proxy(&obj.KubeProxyAddon)
 }
 
 // SetDefaults_APIServer assigns default values for the API Server
@@ -114,6 +119,19 @@ func SetDefaults_APIServer(obj *APIServer) {
 		obj.TimeoutForControlPlane = &metav1.Duration{
 			Duration: constants.DefaultControlPlaneTimeout,
 		}
+	}
+}
+
+func SetDefaults_Proxy(obj *KubeProxyAddon) {
+	if obj.NodeSelector == "" {
+		obj.NodeSelector = DefaultKubeProxyAddonNodeSelector
+	}
+}
+
+// SetDefaults_DNS assigns default values for the DNS component
+func SetDefaults_DNS(obj *ClusterConfiguration) {
+	if obj.DNS.NodeSelector == "" {
+		obj.DNS.NodeSelector = DefaultDNSAddonNodeSelector
 	}
 }
 

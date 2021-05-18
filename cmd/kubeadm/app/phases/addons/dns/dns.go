@@ -33,6 +33,7 @@ import (
 	rbac "k8s.io/api/rbac/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	kuberuntime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	clientset "k8s.io/client-go/kubernetes"
@@ -96,10 +97,16 @@ func EnsureDNSAddon(cfg *kubeadmapi.ClusterConfiguration, client clientset.Inter
 }
 
 func coreDNSAddon(cfg *kubeadmapi.ClusterConfiguration, client clientset.Interface, replicas *int32) error {
+	nodeSelector, err := labels.ConvertSelectorToLabelsMap(cfg.DNS.NodeSelector)
+	if err != nil {
+		return errors.Wrap(err, "error when parsing nodeSelector")
+	}
+
 	// Get the YAML manifest
 	coreDNSDeploymentBytes, err := kubeadmutil.ParseTemplate(CoreDNSDeployment, struct {
 		DeploymentName, Image, OldControlPlaneTaintKey, ControlPlaneTaintKey string
 		Replicas                                                             *int32
+		NodeSelector                                                         labels.Set
 	}{
 		DeploymentName: kubeadmconstants.CoreDNSDeploymentName,
 		Image:          images.GetDNSImage(cfg),
@@ -107,6 +114,7 @@ func coreDNSAddon(cfg *kubeadmapi.ClusterConfiguration, client clientset.Interfa
 		OldControlPlaneTaintKey: kubeadmconstants.LabelNodeRoleOldControlPlane,
 		ControlPlaneTaintKey:    kubeadmconstants.LabelNodeRoleControlPlane,
 		Replicas:                replicas,
+		NodeSelector:            nodeSelector,
 	})
 	if err != nil {
 		return errors.Wrap(err, "error when parsing CoreDNS deployment template")

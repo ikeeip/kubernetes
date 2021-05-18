@@ -31,6 +31,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	rbac "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	kuberuntime "k8s.io/apimachinery/pkg/runtime"
 	clientset "k8s.io/client-go/kubernetes"
 	clientsetscheme "k8s.io/client-go/kubernetes/scheme"
@@ -133,10 +134,19 @@ func createKubeProxyConfigMap(cfg *kubeadmapi.ClusterConfiguration, localEndpoin
 }
 
 func createKubeProxyAddon(cfg *kubeadmapi.ClusterConfiguration, client clientset.Interface) error {
-	daemonSetbytes, err := kubeadmutil.ParseTemplate(KubeProxyDaemonSet19, struct{ Image, ProxyConfigMap, ProxyConfigMapKey string }{
+	nodeSelector, err := labels.ConvertSelectorToLabelsMap(cfg.KubeProxyAddon.NodeSelector)
+	if err != nil {
+		return errors.Wrap(err, "error when parsing nodeSelector")
+	}
+
+	daemonSetbytes, err := kubeadmutil.ParseTemplate(KubeProxyDaemonSet19, struct {
+		Image, ProxyConfigMap, ProxyConfigMapKey string
+		NodeSelector                             labels.Set
+	}{
 		Image:             images.GetKubernetesImage(constants.KubeProxy, cfg),
 		ProxyConfigMap:    constants.KubeProxyConfigMap,
 		ProxyConfigMapKey: constants.KubeProxyConfigMapKey,
+		NodeSelector:      nodeSelector,
 	})
 	if err != nil {
 		return errors.Wrap(err, "error when parsing kube-proxy daemonset template")

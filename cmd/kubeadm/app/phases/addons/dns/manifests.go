@@ -86,7 +86,9 @@ spec:
       - key: {{ .ControlPlaneTaintKey }}
         effect: NoSchedule
       nodeSelector:
-        kubernetes.io/os: linux
+        {{- range $key, $value := .NodeSelector }}
+        {{ $key }}: {{ $value }}
+        {{- end }}
       containers:
       - name: coredns
         image: {{ .Image }}

@@ -235,6 +235,12 @@ var (
 				DNSDomain:     "cluster.local",
 				ServiceSubnet: "10.96.0.0/12",
 			},
+			DNS: kubeadmapiv1.DNS{
+				NodeSelector: "kubernetes.io/os=linux",
+			},
+			KubeProxyAddon: kubeadmapiv1.KubeProxyAddon{
+				NodeSelector: "kubernetes.io/os=linux",
+			},
 			Etcd: kubeadmapiv1.Etcd{
 				Local: &kubeadmapiv1.LocalEtcd{
 					DataDir: "/var/lib/etcd",
@@ -279,6 +285,7 @@ func TestConfigBaseMarshal(t *testing.T) {
 			dns: {}
 			etcd: {}
 			kind: ClusterConfiguration
+			kubeProxyAddon: {}
 			kubernetesVersion: 1.2.3
 			networking: {}
 			scheduler: {}

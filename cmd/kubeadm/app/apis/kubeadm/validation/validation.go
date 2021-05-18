@@ -34,6 +34,7 @@ import (
 	"k8s.io/kubernetes/cmd/kubeadm/app/features"
 	kubeadmutil "k8s.io/kubernetes/cmd/kubeadm/app/util"
 
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/apimachinery/pkg/util/validation/field"
@@ -68,6 +69,7 @@ func ValidateClusterConfiguration(c *kubeadm.ClusterConfiguration) field.ErrorLi
 	allErrs = append(allErrs, ValidateFeatureGates(c.FeatureGates, field.NewPath("featureGates"))...)
 	allErrs = append(allErrs, ValidateHostPort(c.ControlPlaneEndpoint, field.NewPath("controlPlaneEndpoint"))...)
 	allErrs = append(allErrs, ValidateEtcd(&c.Etcd, field.NewPath("etcd"))...)
+	allErrs = append(allErrs, ValidateKubeProxy(&c.KubeProxyAddon, field.NewPath("kubeProxyAddon"))...)
 	allErrs = append(allErrs, componentconfigs.Validate(c)...)
 	return allErrs
 }
@@ -502,6 +504,21 @@ func ValidateDNS(dns *kubeadm.DNS, fldPath *field.Path) field.ErrorList {
 	const kubeDNSType = "kube-dns"
 	if dns.Type == kubeDNSType {
 		allErrs = append(allErrs, field.Invalid(fldPath, dns.Type, fmt.Sprintf("DNS type %q is no longer supported", kubeDNSType)))
+	}
+	allErrs = append(allErrs, validateNodeSelector(dns.NodeSelector, fldPath)...)
+	return allErrs
+}
+
+// ValidateKubeProxy validates the Proxy object and collects all encountered errors
+func ValidateKubeProxy(p *kubeadm.KubeProxyAddon, fldPath *field.Path) field.ErrorList {
+	return validateNodeSelector(p.NodeSelector, fldPath)
+}
+
+func validateNodeSelector(ns string, fldPath *field.Path) field.ErrorList {
+	allErrs := field.ErrorList{}
+	_, err := labels.ConvertSelectorToLabelsMap(ns)
+	if err != nil {
+		allErrs = append(allErrs, field.Invalid(fldPath, ns, err.Error()))
 	}
 	return allErrs
 }

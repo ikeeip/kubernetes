@@ -26,6 +26,7 @@ import (
 
 	apps "k8s.io/api/apps/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	clientsetfake "k8s.io/client-go/kubernetes/fake"
@@ -111,10 +112,14 @@ func TestCompileManifests(t *testing.T) {
 		{
 			name:     "KubeProxyDaemonSet19",
 			manifest: KubeProxyDaemonSet19,
-			data: struct{ Image, ProxyConfigMap, ProxyConfigMapKey string }{
+			data: struct {
+				Image, ProxyConfigMap, ProxyConfigMapKey string
+				NodeSelector                             labels.Set
+			}{
 				Image:             "foo",
 				ProxyConfigMap:    "bar",
 				ProxyConfigMapKey: "baz",
+				NodeSelector:      labels.Set{"lk": "lv"},
 			},
 		},
 	}
@@ -229,10 +234,14 @@ func TestDaemonSetsHaveSystemNodeCriticalPriorityClassName(t *testing.T) {
 		{
 			name:     "KubeProxyDaemonSet19",
 			manifest: KubeProxyDaemonSet19,
-			data: struct{ Image, ProxyConfigMap, ProxyConfigMapKey string }{
+			data: struct {
+				Image, ProxyConfigMap, ProxyConfigMapKey string
+				NodeSelector                             labels.Set
+			}{
 				Image:             "foo",
 				ProxyConfigMap:    "foo",
 				ProxyConfigMapKey: "foo",
+				NodeSelector:      labels.Set{"lk": "lv"},
 			},
 		},
 	}

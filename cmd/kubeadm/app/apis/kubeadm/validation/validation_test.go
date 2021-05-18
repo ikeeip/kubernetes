@@ -1292,3 +1292,30 @@ func TestGetClusterNodeMask(t *testing.T) {
 		})
 	}
 }
+
+func TestValidateNodeSelector(t *testing.T) {
+	tests := []struct {
+		name          string
+		nodeSelector  string
+		expectedError bool
+	}{
+		{
+			name:          "valid selector",
+			nodeSelector:  "l1k=l1v, l2k=l2v",
+			expectedError: false,
+		},
+		{
+			name:          "invalid selector",
+			nodeSelector:  "lk=lk=lk",
+			expectedError: true,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			err := validateNodeSelector(test.nodeSelector, field.NewPath("path"))
+			if (len(err) == 0) == test.expectedError {
+				t.Errorf("expected error: %v, got %v", test.expectedError, err)
+			}
+		})
+	}
+}

@@ -111,6 +111,8 @@ spec:
       tolerations:
       - operator: Exists
       nodeSelector:
-        kubernetes.io/os: linux
-`
+        {{- range $key, $value := .NodeSelector }}
+        {{ $key }}: {{ $value }}
+        {{- end }}
+        `
 )

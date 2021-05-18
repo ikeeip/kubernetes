@@ -54,6 +54,9 @@ const (
 	DefaultProxyBindAddressv6 = "::"
 	// DefaultDiscoveryTimeout specifies the default discovery timeout for kubeadm (used unless one is specified in the JoinConfiguration)
 	DefaultDiscoveryTimeout = 5 * time.Minute
+
+	DefaultDNSAddonNodeSelector       = "kubernetes.io/os=linux"
+	DefaultKubeProxyAddonNodeSelector = "kubernetes.io/os=linux"
 )
 
 var (
@@ -101,6 +104,7 @@ func SetDefaults_ClusterConfiguration(obj *ClusterConfiguration) {
 	SetDefaults_DNS(obj)
 	SetDefaults_Etcd(obj)
 	SetDefaults_APIServer(&obj.APIServer)
+	SetDefaults_Proxy(&obj.KubeProxyAddon)
 }
 
 // SetDefaults_APIServer assigns default values for the API Server
@@ -112,10 +116,19 @@ func SetDefaults_APIServer(obj *APIServer) {
 	}
 }
 
+func SetDefaults_Proxy(obj *KubeProxyAddon) {
+	if obj.NodeSelector == "" {
+		obj.NodeSelector = DefaultKubeProxyAddonNodeSelector
+	}
+}
+
 // SetDefaults_DNS assigns default values for the DNS component
 func SetDefaults_DNS(obj *ClusterConfiguration) {
 	if obj.DNS.Type == "" {
 		obj.DNS.Type = CoreDNS
+	}
+	if obj.DNS.NodeSelector == "" {
+		obj.DNS.NodeSelector = DefaultDNSAddonNodeSelector
 	}
 }
 

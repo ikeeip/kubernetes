@@ -92,6 +92,9 @@ type ClusterConfiguration struct {
 	// DNS defines the options for the DNS add-on installed in the cluster.
 	DNS DNS `json:"dns,omitempty"`
 
+	// KubeProxyAddon defines the options for the KubeProxy add-on installed in the cluster.
+	KubeProxyAddon KubeProxyAddon `json:"kubeProxyAddon,omitempty"`
+
 	// CertificatesDir specifies where to store or look for all required certificates.
 	CertificatesDir string `json:"certificatesDir,omitempty"`
 
@@ -152,6 +155,15 @@ type DNS struct {
 
 	// ImageMeta allows to customize the image used for the DNS component
 	ImageMeta `json:",inline"`
+
+	// NodeSelector allows to customize Deployment NodeSelector
+	NodeSelector string `json:"nodeSelector,omitempty"`
+}
+
+// KubeProxyAddon defines the KubeProxy addon configuration
+type KubeProxyAddon struct {
+	// NodeSelector allows to customize Daemonset NodeSelector
+	NodeSelector string `json:"nodeSelector,omitempty"`
 }
 
 // ImageMeta allows to customize the image used for components that are not

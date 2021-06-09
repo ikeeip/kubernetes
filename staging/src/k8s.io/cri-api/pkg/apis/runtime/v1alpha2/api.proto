@@ -78,6 +78,8 @@ service RuntimeService {
     // ContainerStatus returns status of the container. If the container is not
     // present, returns an error.
     rpc ContainerStatus(ContainerStatusRequest) returns (ContainerStatusResponse) {}
+    // SubscribeContainerEvent returns ContainerEventMessage stream
+    rpc SubscribeContainerEvent(SubscribeContainerEventRequest) returns (stream ContainerEventMessage) {}
     // UpdateContainerResources updates ContainerConfig of the container.
     rpc UpdateContainerResources(UpdateContainerResourcesRequest) returns (UpdateContainerResourcesResponse) {}
     // ReopenContainerLog asks runtime to reopen the stdout/stderr log file
@@ -977,6 +979,34 @@ message ContainerStatusResponse {
     // debug, e.g. pid for linux container based container runtime.
     // It should only be returned non-empty when Verbose is true.
     map<string, string> info = 2;
+}
+
+message SubscribeContainerEventRequest {
+    // List of labels that should be included in response if exists
+    repeated string withLabels = 1;
+    // List of annotations that should be included in response if exists
+    repeated string withAnnotations = 2;
+}
+
+message ContainerEventMessage {
+    enum EventType {
+        Unspecified = 0;
+        ContainerCreated = 1;
+        ContainerStarted = 2;
+        ContainerUpdated = 3;
+        ContainerStopped = 4;
+        ContainerDeleted = 5;
+    }
+    // Type of event
+    EventType event_type = 1;
+    // ID of the container or sandbox
+    string container_id = 2;
+    // ID of the sandbox associatet within container
+    string sandbox_id = 3;
+    // Key-value pairs that may be used to scope and select individual resources.
+    map<string, string> labels = 4;
+    // Unstructured key-value map holding arbitrary metadata.
+    map<string, string> annotations = 5;
 }
 
 message UpdateContainerResourcesRequest {

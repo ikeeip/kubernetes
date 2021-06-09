@@ -22,10 +22,11 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/mock"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/remotecommand"
 	"k8s.io/client-go/util/flowcontrol"
+	internalapi "k8s.io/cri-api/pkg/apis"
 	runtimeapi "k8s.io/cri-api/pkg/apis/runtime/v1alpha2"
 	kubecontainer "k8s.io/kubernetes/pkg/kubelet/container"
 	"k8s.io/kubernetes/pkg/volume"
@@ -95,6 +96,11 @@ func (r *Mock) KillContainerInPod(container v1.Container, pod *v1.Pod) error {
 func (r *Mock) GetPodStatus(uid types.UID, name, namespace string) (*kubecontainer.PodStatus, error) {
 	args := r.Called(uid, name, namespace)
 	return args.Get(0).(*kubecontainer.PodStatus), args.Error(1)
+}
+
+func (r *Mock) SubscribeContainerEvent(requestLabels, requestAnnotations []string) (internalapi.ContainerEventsWatchInterface, error) {
+	args := r.Called(requestLabels, requestAnnotations)
+	return args.Get(0).(internalapi.ContainerEventsWatchInterface), args.Error(1)
 }
 
 func (r *Mock) ExecInContainer(containerID kubecontainer.ContainerID, cmd []string, stdin io.Reader, stdout, stderr io.WriteCloser, tty bool, resize <-chan remotecommand.TerminalSize, timeout time.Duration) error {

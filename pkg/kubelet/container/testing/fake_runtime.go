@@ -28,6 +28,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/util/flowcontrol"
+	internalapi "k8s.io/cri-api/pkg/apis"
 	runtimeapi "k8s.io/cri-api/pkg/apis/runtime/v1alpha2"
 	kubecontainer "k8s.io/kubernetes/pkg/kubelet/container"
 	"k8s.io/kubernetes/pkg/volume"
@@ -287,6 +288,15 @@ func (f *FakeRuntime) GetPodStatus(uid types.UID, name, namespace string) (*kube
 	f.CalledFunctions = append(f.CalledFunctions, "GetPodStatus")
 	status := f.PodStatus
 	return &status, f.Err
+}
+
+func (f *FakeRuntime) SubscribeContainerEvent(requestLabels, requestAnnotations []string) (internalapi.ContainerEventsWatchInterface, error) {
+	f.Lock()
+	defer f.Unlock()
+
+	f.CalledFunctions = append(f.CalledFunctions, "ListContainerStatus")
+
+	return internalapi.NewContainerEventsFakeWatcher(requestLabels, requestAnnotations), nil
 }
 
 func (f *FakeRuntime) GetContainerLogs(_ context.Context, pod *v1.Pod, containerID kubecontainer.ContainerID, logOptions *v1.PodLogOptions, stdout, stderr io.Writer) (err error) {

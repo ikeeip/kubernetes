@@ -45,6 +45,7 @@ import (
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/sets"
 	utilfeature "k8s.io/apiserver/pkg/util/feature"
+	internalapi "k8s.io/cri-api/pkg/apis"
 	runtimeapi "k8s.io/cri-api/pkg/apis/runtime/v1alpha2"
 	"k8s.io/kubernetes/pkg/features"
 	kubecontainer "k8s.io/kubernetes/pkg/kubelet/container"
@@ -446,6 +447,13 @@ func (m *kubeGenericRuntimeManager) getKubeletContainers(allContainers bool) ([]
 	}
 
 	return containers, nil
+}
+
+// SubscribeContainerEvent subscribes on container events, and returns the event watcher
+// This method just proxies request to the runtime
+// TODO: merge args into one struct
+func (m *kubeGenericRuntimeManager) SubscribeContainerEvent(requestLabels, requestAnnotations []string) (internalapi.ContainerEventsWatchInterface, error) {
+	return m.runtimeService.SubscribeContainerEvent(requestLabels, requestAnnotations)
 }
 
 // makeUID returns a randomly generated string.

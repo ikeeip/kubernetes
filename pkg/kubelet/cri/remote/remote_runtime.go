@@ -348,6 +348,14 @@ func (r *remoteRuntimeService) ContainerStatus(containerID string) (*runtimeapi.
 	return resp.Status, nil
 }
 
+// SubscribeContainerEvent subscribes on container events, and returns the event watcher
+func (r *remoteRuntimeService) SubscribeContainerEvent(requestLabels, requestAnnotations []string) (internalapi.ContainerEventsWatchInterface, error) {
+	klog.V(10).InfoS("[RemoteRuntimeService] SubscribeContainerEvent", "requestLabels", requestLabels, "requestAnnotations", requestAnnotations)
+	// For stream we can't use context.WithTimeout here
+	ctx := context.Background()
+	return newContainerEventStreamWatcher(ctx, r.runtimeClient, requestLabels, requestAnnotations), nil
+}
+
 // UpdateContainerResources updates a containers resource config
 func (r *remoteRuntimeService) UpdateContainerResources(containerID string, resources *runtimeapi.LinuxContainerResources) error {
 	klog.V(10).InfoS("[RemoteRuntimeService] UpdateContainerResources", "containerID", containerID, "timeout", r.timeout)

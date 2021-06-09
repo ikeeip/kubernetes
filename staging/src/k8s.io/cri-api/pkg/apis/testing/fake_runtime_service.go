@@ -22,6 +22,7 @@ import (
 	"sync"
 	"time"
 
+	internalapi "k8s.io/cri-api/pkg/apis"
 	runtimeapi "k8s.io/cri-api/pkg/apis/runtime/v1alpha2"
 )
 
@@ -504,6 +505,19 @@ func (r *FakeRuntimeService) ContainerStatus(containerID string) (*runtimeapi.Co
 
 	status := c.ContainerStatus
 	return &status, nil
+}
+
+// SubscribeContainerEvent subscribes on container events, and returns the event watcher in the FakeRuntimeService
+func (r *FakeRuntimeService) SubscribeContainerEvent(requestLabels, requestAnnotations []string) (internalapi.ContainerStatusWatchInterface, error) {
+	r.Lock()
+	defer r.Unlock()
+
+	r.Called = append(r.Called, "SubscribeContainerEvent")
+	if err := r.popError("SubscribeContainerEvent"); err != nil {
+		return nil, err
+	}
+
+	return internalapi.NewContainerStatusFakeWatcher(requestLabels, requestAnnotations)
 }
 
 // UpdateContainerResources returns the container resource in the FakeRuntimeService.

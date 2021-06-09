@@ -461,6 +461,11 @@ func (ds *dockerService) ContainerStatus(_ context.Context, req *runtimeapi.Cont
 	return &runtimeapi.ContainerStatusResponse{Status: status}, nil
 }
 
+func (ds *dockerService) SubscribeContainerEvent(r *runtimeapi.SubscribeContainerEventRequest, srv runtimeapi.RuntimeService_SubscribeContainerEventServer) error {
+	// TODO: fixme!
+	return fmt.Errorf("Not supported")
+}
+
 func (ds *dockerService) UpdateContainerResources(_ context.Context, r *runtimeapi.UpdateContainerResourcesRequest) (*runtimeapi.UpdateContainerResourcesResponse, error) {
 	resources := r.Linux
 	updateConfig := dockercontainer.UpdateConfig{

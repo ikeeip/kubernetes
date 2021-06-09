@@ -131,6 +131,15 @@ func (in instrumentedRuntimeService) ContainerStatus(containerID string) (*runti
 	return out, err
 }
 
+func (in instrumentedRuntimeService) SubscribeContainerEvent(requestLabels, requestAnnotations []string) (internalapi.ContainerEventsWatchInterface, error) {
+	const operation = "subscribe_container_event"
+	defer recordOperation(operation, time.Now())
+
+	out, err := in.service.SubscribeContainerEvent(requestLabels, requestAnnotations)
+	recordError(operation, err)
+	return out, err
+}
+
 func (in instrumentedRuntimeService) UpdateContainerResources(containerID string, resources *runtimeapi.LinuxContainerResources) error {
 	const operation = "update_container"
 	defer recordOperation(operation, time.Now())

@@ -43,6 +43,8 @@ type ContainerManager interface {
 	ListContainers(filter *runtimeapi.ContainerFilter) ([]*runtimeapi.Container, error)
 	// ContainerStatus returns the status of the container.
 	ContainerStatus(containerID string) (*runtimeapi.ContainerStatus, error)
+	// SubscribeContainerEvent subscribes on container events, and returns the event watcher
+	SubscribeContainerEvent(requestLabels, requestAnnotations []string) (ContainerEventsWatchInterface, error)
 	// UpdateContainerResources updates the cgroup resources for the container.
 	UpdateContainerResources(containerID string, resources *runtimeapi.LinuxContainerResources) error
 	// ExecSync executes a command in the container, and returns the stdout output.

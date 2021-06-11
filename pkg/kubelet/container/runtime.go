@@ -339,6 +339,29 @@ type Status struct {
 	Message string
 }
 
+// String formats the container status into human readable string.
+func (s *Status) String() string {
+	if s == nil {
+		return "nil"
+	}
+	return strings.Join([]string{`&Status{`,
+		`ID:` + fmt.Sprintf("%v", s.ID.String()) + `,`,
+		`Name:` + fmt.Sprintf("%v", s.ID.String()) + `,`,
+		`State:` + fmt.Sprintf("%v", s.State) + `,`,
+		`CreatedAt:` + fmt.Sprintf("%v", s.CreatedAt) + `,`,
+		`StartedAt:` + fmt.Sprintf("%v", s.StartedAt) + `,`,
+		`FinishedAt:` + fmt.Sprintf("%v", s.FinishedAt) + `,`,
+		`ExitCode:` + fmt.Sprintf("%v", s.ExitCode) + `,`,
+		`Image:` + fmt.Sprintf("%v", s.Image) + `,`,
+		`ImageID:` + fmt.Sprintf("%v", s.ImageID) + `,`,
+		`Hash:` + fmt.Sprintf("%v", s.Hash) + `,`,
+		`RestartCount:` + fmt.Sprintf("%v", s.RestartCount) + `,`,
+		`Reason:` + fmt.Sprintf("%v", s.Reason) + `,`,
+		`Message:` + fmt.Sprintf("%v", s.Message),
+		`}`,
+	}, "")
+}
+
 // FindContainerStatusByName returns container status in the pod status with the given name.
 // When there are multiple containers' statuses with the same name, the first match will be returned.
 func (podStatus *PodStatus) FindContainerStatusByName(containerName string) *Status {

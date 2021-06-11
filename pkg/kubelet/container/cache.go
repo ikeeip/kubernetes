@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/klog/v2"
 )
 
 // Cache stores the PodStatus for the pods. It represents *all* the visible
@@ -88,8 +89,10 @@ func (c *cache) Get(id types.UID) (*PodStatus, error) {
 }
 
 func (c *cache) GetNewerThan(id types.UID, minTime time.Time) (*PodStatus, error) {
+	klog.InfoS("[PodStatusCache] GetNewerThan", "uid", id, "timestamp", minTime)
 	ch := c.subscribe(id, minTime)
 	d := <-ch
+	klog.InfoS("[PodStatusCache] GetNewerThan", "uid", id, "timestamp", minTime, "status", d.status, "error", d.err)
 	return d.status, d.err
 }
 
@@ -98,6 +101,7 @@ func (c *cache) Set(id types.UID, status *PodStatus, err error, timestamp time.T
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	defer c.notify(id, timestamp)
+	klog.InfoS("[PodStatusCache] Set", "uid", id, "timestamp", timestamp)
 	c.pods[id] = &data{status: status, err: err, modified: timestamp}
 }
 
@@ -105,6 +109,7 @@ func (c *cache) Set(id types.UID, status *PodStatus, err error, timestamp time.T
 func (c *cache) Delete(id types.UID) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
+	klog.InfoS("[PodStatusCache] Delete", "uid", id)
 	delete(c.pods, id)
 }
 
@@ -113,6 +118,7 @@ func (c *cache) Delete(id types.UID) {
 func (c *cache) UpdateTime(timestamp time.Time) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
+	klog.InfoS("[PodStatusCache] UpdateTime", "timestamp", timestamp)
 	c.timestamp = &timestamp
 	// Notify all the subscribers if the condition is met.
 	for id := range c.subscribers {

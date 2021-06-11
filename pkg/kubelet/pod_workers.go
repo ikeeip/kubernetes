@@ -22,7 +22,7 @@ import (
 	"sync"
 	"time"
 
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/sets"
@@ -157,6 +157,7 @@ func newPodWorkers(syncPodFn syncPodFnType, recorder record.EventRecorder, workQ
 func (p *podWorkers) managePodLoop(podUpdates <-chan UpdatePodOptions) {
 	var lastSyncTime time.Time
 	for update := range podUpdates {
+		klog.V(2).InfoS("[pod workers] managePodLoop", "uid", update.Pod.UID, "update", update)
 		err := func() error {
 			podUID := update.Pod.UID
 			// This is a blocking call that would return only if the cache
@@ -166,11 +167,13 @@ func (p *podWorkers) managePodLoop(podUpdates <-chan UpdatePodOptions) {
 			// the previous sync.
 			status, err := p.podCache.GetNewerThan(podUID, lastSyncTime)
 			if err != nil {
+				klog.V(2).ErrorS(err, "[pod workers] error determining status: %v")
 				// This is the legacy event thrown by manage pod loop
 				// all other events are now dispatched from syncPodFn
 				p.recorder.Eventf(update.Pod, v1.EventTypeWarning, events.FailedSync, "error determining status: %v", err)
 				return err
 			}
+			klog.V(2).InfoS("[pod workers] managePodLoop podCache.GetNewerThan", "uid", update.Pod.UID, "status", status)
 			err = p.syncPodFn(syncPodOptions{
 				mirrorPod:      update.MirrorPod,
 				pod:            update.Pod,
@@ -197,6 +200,7 @@ func (p *podWorkers) managePodLoop(podUpdates <-chan UpdatePodOptions) {
 // If the options provide an OnCompleteFunc, the function is invoked if the update is accepted.
 // Update requests are ignored if a kill pod request is pending.
 func (p *podWorkers) UpdatePod(options *UpdatePodOptions) {
+	klog.V(2).InfoS("[pod workers] UpdatePod", "uid", options.Pod.UID, "pod", klog.KObj(options.Pod), "options", options)
 	pod := options.Pod
 	uid := pod.UID
 	var podUpdates chan UpdatePodOptions
@@ -205,6 +209,7 @@ func (p *podWorkers) UpdatePod(options *UpdatePodOptions) {
 	p.podLock.Lock()
 	defer p.podLock.Unlock()
 	if podUpdates, exists = p.podUpdates[uid]; !exists {
+		klog.V(2).InfoS("[pod workers] UpdatePod create new worker", "uid", options.Pod.UID)
 		// We need to have a buffer here, because checkForUpdates() method that
 		// puts an update into channel is called from the same goroutine where
 		// the channel is consumed. However, it is guaranteed that in such case
@@ -222,11 +227,13 @@ func (p *podWorkers) UpdatePod(options *UpdatePodOptions) {
 		}()
 	}
 	if !p.isWorking[pod.UID] {
+		klog.V(2).InfoS("[pod workers] UpdatePod work", "uid", options.Pod.UID)
 		p.isWorking[pod.UID] = true
 		podUpdates <- *options
 	} else {
 		// if a request to kill a pod is pending, we do not let anything overwrite that request.
 		update, found := p.lastUndeliveredWorkUpdate[pod.UID]
+		klog.V(2).InfoS("[pod workers] UpdatePod undelivered", "uid", options.Pod.UID, "found", found)
 		if !found || update.UpdateType != kubetypes.SyncPodKill {
 			p.lastUndeliveredWorkUpdate[pod.UID] = *options
 		}

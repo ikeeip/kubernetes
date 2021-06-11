@@ -162,13 +162,13 @@ func (m *manager) Start() {
 		for {
 			select {
 			case syncRequest := <-m.podStatusChannel:
-				klog.V(5).InfoS("Status Manager: syncing pod with status from podStatusChannel",
+				klog.V(2).InfoS("Status Manager: syncing pod with status from podStatusChannel",
 					"podUID", syncRequest.podUID,
 					"statusVersion", syncRequest.status.version,
 					"status", syncRequest.status.status)
 				m.syncPod(syncRequest.podUID, syncRequest.status)
 			case <-syncTicker:
-				klog.V(5).InfoS("Status Manager: syncing batch")
+				klog.V(2).InfoS("Status Manager: syncing batch")
 				// remove any entries in the status channel since the batch will handle them
 				for i := len(m.podStatusChannel); i > 0; i-- {
 					<-m.podStatusChannel
@@ -448,7 +448,7 @@ func (m *manager) updateStatusInternal(pod *v1.Pod, status v1.PodStatus, forceUp
 
 	select {
 	case m.podStatusChannel <- podStatusSyncRequest{pod.UID, newStatus}:
-		klog.V(5).InfoS("Status Manager: adding pod with new status to podStatusChannel",
+		klog.V(2).InfoS("Status Manager: adding pod with new status to podStatusChannel",
 			"pod", klog.KObj(pod),
 			"podUID", pod.UID,
 			"statusVersion", newStatus.version,
@@ -540,7 +540,7 @@ func (m *manager) syncBatch() {
 	}()
 
 	for _, update := range updatedStatuses {
-		klog.V(5).InfoS("Status Manager: syncPod in syncbatch", "podUID", update.podUID)
+		klog.V(2).InfoS("Status Manager: syncPod in syncbatch", "podUID", update.podUID)
 		m.syncPod(update.podUID, update.status)
 	}
 }
